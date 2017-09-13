@@ -1,0 +1,7 @@
+#! /bin/bash
+echo "BEGIN" >> /root/backup_stats
+date >> /root/backup_stats
+rsync -avu /data/ /backup/storage/ > /root/backup_stats
+echo "END" >> /root/backup_stats
+date >> /root/backup_stats
+df -h | grep /dev/sdc1 >> /root/backup_stats

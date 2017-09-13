@@ -1,0 +1,19 @@
+#!/bin/bash
+STARTTIME=`date`
+START=`date +%s%N`
+
+echo $STARTTIME
+echo $START
+
+printf "SCRIPT START: "
+echo $STARTTIME
+printf "\n"
+
+ENDTIME=`date`
+END=`date +%s`
+
+echo $ENDTIME
+echo $END
+
+ELAPSED=`echo "scale=8; ($END - $START) / 1000000000" | bc`
+echo $ELAPSED

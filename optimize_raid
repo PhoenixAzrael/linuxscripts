@@ -1,0 +1,47 @@
+#!/bin/bash
+### EDIT THESE LINES ONLY
+# Set MD Raid
+RAID_NAME="md2"
+# devices seperated by spaces i.e. "a b c d..." between "(" and ")"
+#RAID_DRIVES=$(mdadm --detail /dev/$RAID_NAME | grep "/dev/sd" | awk '{print $7}' | cut -c6-8)
+RAID_DRIVES=(a b c d)
+# this should be changed to match above line
+SPEED_MIN=50000		# Default is
+SPEED_MAX=200000	# Default is
+
+echo "Setting speed limits for rebuild to Min:$SPEED_MIN and MAX:$SPEED_MAX"
+echo $SPEED_MIN > /proc/sys/dev/raid/speed_limit_min
+echo $SPEED_MAX > /proc/sys/dev/raid/speed_limit_max
+
+READ_AHEAD_DISK=16384   # Default is
+READ_AHEAD_KB=1024      # Default is 128
+NR_REQUEST=256          # Default is 128
+NCQ_QUEUE_DEPTH=1       # Default is 31
+
+# looping though drives that make up raid -> /dev/sda,/dev/sdb...
+for index in "${RAID_DRIVES[@]}"
+do	
+	echo "Set readahead for disk /dev/sd${index} to $READ_AHEAD_DISK"
+	blockdev --setra $READ_AHEAD_DISK /dev/sd${index}
+	echo "Set readahead queue for disk /dev/sd${index} to $READ_AHEAD_KB" 
+	echo $READ_AHEAD_KB > /sys/block/sd${index}/queue/read_ahead_kb
+	# Not working -> set /etc/rc.local
+	#echo "Set nr_request queue for disk /dev/sd${index} to $NR_REQUEST"
+        #echo $NR_REQUEST > /sys/block/sd${index}/queue/nr_request
+	echo "Disabling NCQ on disk /dev/sd${index}"
+        echo $NCQ_QUEUE_DEPTH > /sys/block/sd${index}/device/queue_depth
+done
+
+READ_AHEAD_ARRAY=65536  # Default is
+MB=`expr $READ_AHEAD_ARRAY / 1024`
+# Set read-ahead.
+echo "Setting read-ahead to $MB MiB for /dev/${RAID_NAME}"
+blockdev --setra $READ_AHEAD_ARRAY /dev/${RAID_NAME}
+
+STRIPE_SIZE=16384
+MB=`expr $STRIPE_SIZE / 1024`
+STRIPE_ACTIVE=8192
+# Set stripe-cache_size
+echo "Setting stripe_cache_size to $MB MiB for /dev/${RAID_NAME}"
+echo $STRIPE_SIZE > /sys/block/${RAID_NAME}/md/stripe_cache_size
+echo $STRIPE_ACTIVE | tee /sys/block/${RAID_NAME}/md/stripe_cache_active

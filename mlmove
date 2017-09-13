@@ -1,0 +1,2 @@
+#! /bin/bash
+mv -v /var/lib/mldonkey/incoming/directories/* /data/Porn/

@@ -1,0 +1,14 @@
+#! /bin/bash
+echo "---===BEGIN DATA BACKUP===---" > /root/backup.stats
+date >> /root/backup.stats
+rsync -avu --exclude-from '/etc/backup-exclude.lst' /data/ /backup/data/ >> /root/backup.stats
+echo "---===END DATA BACKUP===---" >> /root/backup.stats
+date >> /root/backup.stats
+echo "---===BEGIN HOMES BACKUP"===--- >> /root/backup.stats
+date >> /root/backup.stats
+rsync -avu /home/ /backup/home/ >> /root/backup.stats
+rsync -avu /root/ /backup/home/root/ >> /root/backup.stats
+echo "---===END HOME BACKUP===---" >> /root/backup.stats
+date >> /root/backup.stats
+df -h | grep /dev/sdf1 >> /root/backup.stats
+df -h | grep /dev/sdg1 >> /root/backup.stats

@@ -1,0 +1,22 @@
+#! /bin/bash
+echo
+echo "---===BEGIN DATA SYNC===---" > /root/sync.stats
+date >> /root/sync.stats
+# Data Shares COPY
+echo "---===BEGIN Data Shares COPY===---" >> /root/sync.stats
+rsync -avuq --exclude-from '/root/scripts/exclude.sync' --password-file=/root/scripts/rsyncpwd /data/ rsync://rsync@192.168.168.3/Backup/data/ >> /root/sync.stats
+echo "---===END Data Shares COPY===---" >> /root/sync.stats
+# Homes COPY
+#echo "---===BEGIN Homes COPY===---" >> /root/sync.stats
+#rsync -avuq --password-file=/root/scripts/rsyncpwd /home/ rsync://rsync@192.168.168.3/Backup/home/ >> /root/sync.stats
+#echo "---===END Homes COPY===---" >> /root/sync.stats
+# Root Home COPY
+echo "---===BEGIN ROOT Home COPY===---" >> /root/sync.stats
+rsync -avuq --password-file=/root/scripts/rsyncpwd /root/ rsync://rsync@192.168.168.3/Backup/home/root/ >> /root/sync.stats
+echo "---===END ROOT Home COPY===---" >> /root/sync.stats
+# Backup Shares MIRROR
+#echo "---===BEGIN Backup MIRROR===---" >> /root/sync.stats
+#rsync -rtvu --delete /data/Backup/ --password-file=/root/scripts/rsyncpwd rsync://rsync@192.168.168.3/Backup/data/Backup/ >> /root/sync.stats
+#echo "---===END Backup MIRROR===---" >> /root/sync.stats
+echo "---===END DATA SYNC===---" >> /root/sync.stats
+date >> /root/sync.stats

@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Adjust fan speed automatically.
+
+
+# Location of the nvclock program.
+nvclock_bin=/usr/bin/nvclock
+
+# Target temperature for video card.
+target_temp=80
+
+# Value used to calculate the temperature range (+/- target_temp).
+target_range=1
+
+# Time to wait before re-checking.
+sleep_time=1
+
+# Minimum fan speed.
+min_fanspeed=50
+
+# Fan speed increment.
+adj_fanspeed=1
+
+
+if [[ "$1" ]]; then target_temp=$1; fi
+
+let target_temp_low=target_temp-target_range
+let target_temp_high=target_temp+target_range
+
+
+while true
+do
+    temp=$(echo $($nvclock_bin --info | grep -i 'GPU temperature' | cut -d ':' -f 2))
+    pwm=$(echo $($nvclock_bin --info | grep -i 'PWM duty cycle' | cut -d ':' -f 2))
+
+    temp_val=${temp/C/}
+    pwm_val=${pwm%.*}
+
+    if [[ $temp_val -gt $target_temp_high ]]; then
+        # Temperature above target, see if the fan has any more juice.
+        if [[ $pwm_val -lt 100 ]]; then
+            echo "Increasing GPU fan speed, temperature: $temp"
+            let pwm_val+=adj_fanspeed
+            if [[ $pwm_val -gt 100 ]]; then pwm_val=100; fi
+            $nvclock_bin -f --fanspeed $pwm_val
+        fi
+    elif [[ $temp_val -lt $target_temp_low ]]; then
+        # Temperature below target, lower the fan speed
+        # if we're not already at the minimum.
+        if [[ $pwm_val -gt $min_fanspeed ]]; then
+            echo "Decreasing GPU fan speed, temperature: $temp"
+            let pwm_val-=adj_fanspeed
+            if [[ $pwm_val -lt $min_fanspeed ]]; then pwm_val=$min_fanspeed; fi
+            $nvclock_bin -f --fanspeed $pwm_val
+        fi
+    fi
+    sleep $sleep_time
+done
